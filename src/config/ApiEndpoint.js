@@ -8,4 +8,5 @@ export default {
     CLIENT_LIST: Constants.API_BASEURL + 'client',
     DELETE_CLIENT: Constants.API_BASEURL + 'client/delete',
     EDIT_CLIENT: Constants.API_BASEURL + 'client/edit',
+    DOC_LIST: Constants.API_BASEURL + 'docs',
 }

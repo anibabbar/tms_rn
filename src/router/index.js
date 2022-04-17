@@ -14,6 +14,7 @@ import VendorScreen from '../screens/VendorScreen';
 import AddVendor from '../screens/AddVendor';
 import ClientScreen from '../screens/ClientScreen';
 import AddClient from '../screens/AddClient';
+import DocScreen from '../screens/DocScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -60,6 +61,7 @@ const MainNavigator = () => {
                 <Stack.Screen name="AddVendor" component={AddVendor} />
                 <Stack.Screen name="Clients" component={ClientScreen} />
                 <Stack.Screen name="AddClient" component={AddClient} />
+                <Stack.Screen name="Docs" component={DocScreen} />
                 <Stack.Screen
                     options={{
                         headerShown: true,
