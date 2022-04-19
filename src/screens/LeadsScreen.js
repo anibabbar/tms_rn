@@ -21,14 +21,14 @@ const LeadsScreen = (props) => {
 
     useEffect(() => {
         getVendorList()
-        EventEmitter.on("onAddUser", onAddUser);
+        EventEmitter.on("onAddLead", onAddLead);
 
         return () => {
-            EventEmitter.removeListener("onAddUser", onAddUser);
+            EventEmitter.removeListener("onAddLead", onAddLead);
         }
     }, [])
 
-    const onAddUser = () => {
+    const onAddLead = () => {
         getVendorList()
     }
 
@@ -93,13 +93,13 @@ const LeadsScreen = (props) => {
         var headers = {
             "Authorization": props.profile.token_type + ' ' + props.profile.access_token
         }
-        let data = await ApiServices.PostApiCall(ApiEndpoint.USERS_LIST + '/' + rowMap[rowKey].props.item.id + '/delete', null, headers);
+        let data = await ApiServices.PostApiCall(ApiEndpoint.LEAD_DELETE + '/'+ rowMap[rowKey].props.item.id, null, headers);
         if (!!data && !!data.status) {
             const newData = [...vendorList];
             const prevIndex = vendorList.findIndex(item => item.key === rowKey);
             newData.splice(prevIndex, 1);
             setVendorList(newData);
-            Constants.showAlert.alertWithType('success', 'Success', 'User deleted Successfully!');
+            Constants.showAlert.alertWithType('success', 'Success', 'Lead deleted Successfully!');
         } else {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
         }
@@ -108,8 +108,8 @@ const LeadsScreen = (props) => {
 
     const deleteRow = (rowMap, rowKey) => {
         Alert.alert(
-            "Delete Vendor",
-            "Are you sure you want to delete vendor?",
+            "Delete Lead",
+            "Are you sure you want to delete lead?",
             [
                 {
                     text: "No",

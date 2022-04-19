@@ -17,6 +17,8 @@ import EventEmitter from "react-native-eventemitter";
 import CheckBox from '@react-native-community/checkbox';
 import SelectDropdown from 'react-native-select-dropdown';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import DatePicker from 'react-native-date-picker';
+import moment from 'moment';
 
 const AddLead = (props) => {
 
@@ -30,8 +32,9 @@ const AddLead = (props) => {
     const [departureCity, setDepartureCity] = useState('');
     const [arrivalCity, setArrivalCity] = useState('');
     const [hotelCat, setHotelCat] = useState('');
-    const [estimateDeparture, setEstimateDeparture] = useState('');
+    const [estimateDeparture, setEstimateDeparture] = useState(new Date());
     const [budget, setBudget] = useState('');
+    const [open, setOpen] = useState(false)
 
     const [details, setDetails] = useState('');
     const [additionalRequest, setAdditionalReq] = useState('');
@@ -53,6 +56,9 @@ const AddLead = (props) => {
     const [visa, setVisa] = useState(false);
     const [passport, setPassport] = useState(false);
 
+    const [clientDefault, setClintDefault] = useState('');
+    const [assignUserDefault, setAssignUserDefaulr] = useState('');
+
     const [vendorList, setVendorList] = useState([])
     const [clientList, setUserList] = useState([])
     const leadStatus = ["New Lead", "In Progress", "Confirmed", "Payment Pending", "Cancelled", "Not eligible"]
@@ -60,13 +66,35 @@ const AddLead = (props) => {
     useEffect(() => {
         if (!!props.route.params && !!props.route.params.vendorData) {
             setVendorData(props.route.params.vendorData)
-            setName(props.route.params.vendorData.name)
-            setAltPhone(props.route.params.vendorData.alt_phone)
-            setEmail(props.route.params.vendorData.email)
-            setPhone(props.route.params.vendorData.phone)
-            setAddress(props.route.params.vendorData.address)
-            setNote(props.route.params.vendorData.note)
             setEdit(true)
+
+            setPackage(props.route.params.vendorData.package_format == 1 ? true : false)
+            setFlight(props.route.params.vendorData.flight == 1 ? true : false)
+            setHotel(props.route.params.vendorData.hotel == 1 ? true : false)
+            setTransfers(props.route.params.vendorData.transfers == 1 ? true : false)
+            setSinghseeing(props.route.params.vendorData.sightseeing == 1 ? true : false)
+            setInsurance(props.route.params.vendorData.insurance == 1 ? true : false)
+            setVisa(props.route.params.vendorData.visa == 1 ? true : false)
+            setPassport(props.route.params.vendorData.passport == 1 ? true : false)
+
+            setDetails(props.route.params.vendorData.details)
+            setAdditionalReq(props.route.params.vendorData.requests)
+            setPurchaseInfo(props.route.params.vendorData.purchase_info)
+            setLeadStatusValue(props.route.params.vendorData.status)
+
+            setDepartureCity(props.route.params.vendorData.departure_city)
+            setArrivalCity(props.route.params.vendorData.arrival_city)
+            setHotelCat(props.route.params.vendorData.hotel_category)
+            setEstimateDeparture(new Date(props.route.params.vendorData.estimated_dep))
+            setBudget(props.route.params.vendorData.budget)
+
+            setNoOfAdult(!!props.route.params.vendorData.adults ? props.route.params.vendorData.adults.toString() : '')
+            setNoOfChild(!!props.route.params.vendorData.children ? props.route.params.vendorData.children.toString() : '')
+            setNoOfInfrants(!!props.route.params.vendorData.infants ? props.route.params.vendorData.infants.toString() : '')
+            setNoOfNight(!!props.route.params.vendorData.no_of_nights ? props.route.params.vendorData.no_of_nights.toString() : '')
+            setNoOfRoom(!!props.route.params.vendorData.no_of_rooms ? props.route.params.vendorData.no_of_rooms.toString() : '')
+            setMealPlan(!!props.route.params.vendorData.mealPlan ? props.route.params.vendorData.mealPlan.toString() : '')
+
         }
         getUsers();
         getVendors();
@@ -80,6 +108,15 @@ const AddLead = (props) => {
         let data = await ApiServices.GetApiCall(ApiEndpoint.USERS_LIST, headers);
         if (!!data && !!data.status) {
             setUserList(data.data)
+            if (!!props.route.params && !!props.route.params.vendorData) {
+                for (let index = 0; index < data.data.length; index++) {
+                    const element = data.data[index];
+                    if (element.id == props.route.params.vendorData.assigned_user) {
+                        setAssignUserItem(element)
+                        setAssignUserDefaulr(element)
+                    }
+                }
+            }
         } else {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
         }
@@ -95,6 +132,15 @@ const AddLead = (props) => {
         console.log(ApiEndpoint.VENDOR_LIST, data, props, 'ApiEndpoint.VENDOR_LIST');
         if (!!data && !!data.status) {
             setVendorList(data.data)
+            if (!!props.route.params && !!props.route.params.vendorData) {
+                for (let index = 0; index < data.data.length; index++) {
+                    const element = data.data[index];
+                    if (element.id == props.route.params.vendorData.client_id) {
+                        setClientItem(element)
+                        setClintDefault(element)
+                    }
+                }
+            }
         } else {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
         }
@@ -106,36 +152,88 @@ const AddLead = (props) => {
     }
 
     const onAddVendor = async () => {
-        if (!name) {
-            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid name.');
+        if (!noOfAdult) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid no of adult.');
+        } else if (!noOfRoom) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid no of room.');
+        } else if (!departureCity) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid departure city.');
+        } else if (!arrivalCity) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid arrival city.');
+        } else if (!leadStatusValue) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Select Lead status.');
         }
 
         Constants.showLoader.showLoader();
         var formBody = new FormData();
-        formBody.append('name', name)
-        if (!!phone) {
-            formBody.append('phone', phone)
+        formBody.append('adults', noOfAdult)
+        formBody.append('no_of_rooms', noOfRoom)
+        formBody.append('departure_city', departureCity)
+        formBody.append('arrival_city', arrivalCity)
+        formBody.append('status', leadStatusValue)
+        if (!!clientItem && !!clientItem.id) {
+            formBody.append('client_id', clientItem.id)
         }
-        if (!!email) {
-            formBody.append('email', email)
+        if (!!assignUserItem && !!assignUserItem.id) {
+            formBody.append('assigned_id', assignUserItem.id)
         }
-        if (!!altphone) {
-            formBody.append('alt_phone', altphone)
+        if (!!hotelCat) {
+            formBody.append('hotel_category', hotelCat)
         }
-        if (!!address) {
-            formBody.append('address', address)
+        console.log(moment(estimateDeparture).format('YYYY-MM-DD HH:mm:ss'));
+        if (!!estimateDeparture) {
+            formBody.append('estimated_dep', moment(estimateDeparture).format('YYYY-MM-DD HH-mm-ss'))
         }
-        if (!!note) {
-            formBody.append('note', note)
+        if (!!budget) {
+            formBody.append('budget', budget)
+        }
+        if (!!details) {
+            formBody.append('details', details)
+        }
+        if (!!purchaseInfo) {
+            formBody.append('purchase_info', purchaseInfo)
+        }
+        if (!!flight) {
+            formBody.append('flight', flight ? 1 : 0)
+        }
+        if (!!transfers) {
+            formBody.append('transfers', transfers ? 1 : 0)
+        }
+        if (!!singhseeing) {
+            formBody.append('sightseeing', singhseeing ? 1 : 0)
+        }
+        if (!!insurance) {
+            formBody.append('insurance', insurance ? 1 : 0)
+        }
+        if (!!noOfNight) {
+            formBody.append('no_of_nights', noOfNight)
+        }
+        if (!!additionalRequest) {
+            formBody.append('requests', additionalRequest)
+        }
+        if (!!mealPlan) {
+            formBody.append('mealPlan', mealPlan)
+        }
+        if (!!hotel) {
+            formBody.append('hotel', hotel ? 1 : 0)
+        }
+        if (!!visa) {
+            formBody.append('visa', visa ? 1 : 0)
+        }
+        if (!!passport) {
+            formBody.append('passport', passport ? 1 : 0)
+        }
+        if (!!isPackage) {
+            formBody.append('package', isPackage ? 1 : 0)
         }
         var headers = {
             "Content-Type": "multipart/form-data",
             "Authorization": props.profile.token_type + ' ' + props.profile.access_token
         }
-        let data = await ApiServices.PostApiCall(ApiEndpoint.CLIENT_LIST, formBody, headers);
+        let data = await ApiServices.PostApiCall(ApiEndpoint.LEAD_LIST, formBody, headers);
         if (!!data && !!data.status) {
-            Constants.showAlert.alertWithType('success', 'Success', 'Client added Successfully!');
-            EventEmitter.emit("onAddClient");
+            Constants.showAlert.alertWithType('success', 'Success', 'Lead added Successfully!');
+            EventEmitter.emit("onAddLead");
             props.navigation.pop();
         } else {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
@@ -144,36 +242,89 @@ const AddLead = (props) => {
     }
 
     const onEditVendor = async () => {
-        if (!name) {
-            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid name.');
+        if (!noOfAdult) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid no of adult.');
+        } else if (!noOfRoom) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid no of room.');
+        } else if (!departureCity) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid departure city.');
+        } else if (!arrivalCity) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid arrival city.');
+        } else if (!leadStatusValue) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Select Lead status.');
         }
+
         Constants.showLoader.showLoader();
         var formBody = new FormData();
-        formBody.append('name', name)
-        if (!!phone) {
-            formBody.append('phone', phone)
+        formBody.append('adults', noOfAdult)
+        formBody.append('no_of_rooms', noOfRoom)
+        formBody.append('departure_city', departureCity)
+        formBody.append('arrival_city', arrivalCity)
+        formBody.append('status', leadStatusValue)
+        if (!!clientItem && !!clientItem.id) {
+            formBody.append('client_id', clientItem.id)
         }
-        if (!!email) {
-            formBody.append('email', email)
+        if (!!assignUserItem && !!assignUserItem.id) {
+            formBody.append('assigned_id', assignUserItem.id)
         }
-        if (!!altphone) {
-            formBody.append('alt_phone', altphone)
+        if (!!hotelCat) {
+            formBody.append('hotel_category', hotelCat)
         }
-        if (!!address) {
-            formBody.append('address', address)
+        console.log(moment(estimateDeparture).format('YYYY-MM-DD HH:mm:ss'));
+        if (!!estimateDeparture) {
+            formBody.append('estimated_dep', moment(estimateDeparture).format('YYYY-MM-DD HH-mm-ss'))
         }
-        if (!!note) {
-            formBody.append('note', note)
+        if (!!budget) {
+            formBody.append('budget', budget)
+        }
+        if (!!details) {
+            formBody.append('details', details)
+        }
+        if (!!purchaseInfo) {
+            formBody.append('purchase_info', purchaseInfo)
+        }
+        if (!!flight) {
+            formBody.append('flight', flight ? 1 : 0)
+        }
+        if (!!transfers) {
+            formBody.append('transfers', transfers ? 1 : 0)
+        }
+        if (!!singhseeing) {
+            formBody.append('sightseeing', singhseeing ? 1 : 0)
+        }
+        if (!!insurance) {
+            formBody.append('insurance', insurance ? 1 : 0)
+        }
+        if (!!noOfNight) {
+            formBody.append('no_of_nights', noOfNight)
+        }
+        if (!!additionalRequest) {
+            formBody.append('requests', additionalRequest)
+        }
+        if (!!mealPlan) {
+            formBody.append('mealPlan', mealPlan)
+        }
+        if (!!hotel) {
+            formBody.append('hotel', hotel ? 1 : 0)
+        }
+        if (!!visa) {
+            formBody.append('visa', visa ? 1 : 0)
+        }
+        if (!!passport) {
+            formBody.append('passport', passport ? 1 : 0)
+        }
+        if (!!isPackage) {
+            formBody.append('package', isPackage ? 1 : 0)
         }
         var headers = {
             "Content-Type": "multipart/form-data",
             "Authorization": props.profile.token_type + ' ' + props.profile.access_token
         }
-        let data = await ApiServices.PostApiCall(ApiEndpoint.EDIT_CLIENT + '/' + vendorData.id, formBody, headers);
-        console.log(data, 'ApiEndpoint.EDIT_CLIENT', ApiEndpoint.EDIT_CLIENT + '/' + vendorData.id);
+        let data = await ApiServices.PostApiCall(ApiEndpoint.EDIT_LEAD + '/' + vendorData.id, formBody, headers);
+        console.log(data, 'ApiEndpoint.EDIT_LEAD', ApiEndpoint.EDIT_LEAD + '/' + vendorData.id);
         if (!!data && !!data.status) {
-            Constants.showAlert.alertWithType('success', 'Success', 'Client edited Successfully!');
-            EventEmitter.emit("onAddClient");
+            Constants.showAlert.alertWithType('success', 'Success', 'Lead edited Successfully!');
+            EventEmitter.emit("onAddLead");
             props.navigation.pop();
         } else {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
@@ -401,14 +552,14 @@ const AddLead = (props) => {
                                 placeholder={'Enter Hotel Category'} />
                         </View>
                         <View style={styles.inputContainer}>
-                            <OutlineInput
-                                containerStyle={styles.inputFirstView}
-                                onChangeText={(text) => {
-                                    setEstimateDeparture(text)
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setOpen(true)
                                 }}
-                                value={estimateDeparture}
-                                keyboardType={'phone-pad'}
-                                placeholder={'Enter Estimated Departure'} />
+                                style={[styles.dropdown1BtnStyle1, { marginHorizontal: 10, width: undefined, flex: 1 }]}>
+                                <Text style={styles.dropdown1BtnTxtStyle}>{!!estimateDeparture ? moment(estimateDeparture).format('DD/MM/YYYY') : 'Departure Date'}</Text>
+                                <MaterialCommunityIcons name={'calendar'} color={'#444'} size={22} />
+                            </TouchableOpacity>
                         </View>
                     </View>
                     <OutlineInput
@@ -434,6 +585,7 @@ const AddLead = (props) => {
                             rowTextForSelection={(item, index) => {
                                 return item.name;
                             }}
+                            defaultValue={clientDefault}
                             buttonStyle={styles.dropdown1BtnStyle}
                             buttonTextStyle={styles.dropdown1BtnTxtStyle}
                             renderDropdownIcon={isOpened => {
@@ -453,6 +605,7 @@ const AddLead = (props) => {
                                 console.log(selectedItem, index);
                                 setAssignUserItem(selectedItem)
                             }}
+                            defaultValue={assignUserDefault}
                             defaultButtonText={'Select Assign Team'}
                             buttonTextAfterSelection={(selectedItem, index) => {
                                 return selectedItem.name;
@@ -479,6 +632,7 @@ const AddLead = (props) => {
                                 console.log(selectedItem, index);
                                 setLeadStatusValue(selectedItem)
                             }}
+                            defaultValue={leadStatusValue}
                             defaultButtonText={'Select Lead Status'}
                             buttonTextAfterSelection={(selectedItem, index) => {
                                 return selectedItem;
@@ -540,6 +694,19 @@ const AddLead = (props) => {
                         text={isEdit ? 'Edit Lead' : 'Add Lead'} />
                 </ScrollView>
             </View>
+            <DatePicker
+                modal
+                open={open}
+                date={estimateDeparture}
+                mode={'date'}
+                onConfirm={(date) => {
+                    setOpen(false)
+                    setEstimateDeparture(date)
+                }}
+                onCancel={() => {
+                    setOpen(false)
+                }}
+            />
         </View>
     );
 

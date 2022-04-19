@@ -101,8 +101,8 @@ const UsersScreen = (props) => {
 
     const deleteRow = (rowMap, rowKey) => {
         Alert.alert(
-            "Delete Vendor",
-            "Are you sure you want to delete vendor?",
+            "Delete User",
+            "Are you sure you want to delete user?",
             [
                 {
                     text: "No",

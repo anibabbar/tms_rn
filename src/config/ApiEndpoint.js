@@ -13,5 +13,7 @@ export default {
     EDIT_DOC: Constants.API_BASEURL + 'docs/edit',
     USERS_LIST: Constants.API_BASEURL + 'users',
     LEAD_LIST: Constants.API_BASEURL + 'lead',
+    LEAD_DELETE: Constants.API_BASEURL + 'lead/delete',
+    EDIT_LEAD: Constants.API_BASEURL + 'lead/edit',
     
 }

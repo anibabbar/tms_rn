@@ -114,8 +114,8 @@ const DocScreen = (props) => {
 
     const deleteRow = (rowMap, rowKey) => {
         Alert.alert(
-            "Delete Vendor",
-            "Are you sure you want to delete vendor?",
+            "Delete Doc",
+            "Are you sure you want to delete doc?",
             [
                 {
                     text: "No",
