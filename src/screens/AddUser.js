@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Image, Dimensions, StatusBar, TouchableOpacity, Text, FlatList, ScrollView } from 'react-native';
+import { View, StyleSheet, Image, Dimensions, StatusBar, TouchableOpacity, Text, FlatList } from 'react-native';
 import Constants from '../config/Constants';
 import { connect } from 'react-redux';
 import { Types } from '../constants/actionTypes';
@@ -15,14 +15,12 @@ import CustInput from '../components/CustInput';
 import OutlineInput from '../components/OutlineInput';
 import EventEmitter from "react-native-eventemitter";
 
-const AddClient = (props) => {
+const AddUser = (props) => {
 
     const [name, setName] = useState('')
-    const [altphone, setAltPhone] = useState('')
+    const [password, setPassword] = useState('')
     const [email, setEmail] = useState('')
     const [phone, setPhone] = useState('')
-    const [address, setAddress] = useState('');
-    const [note, setNote] = useState('');
     const [isEdit, setEdit] = useState(false);
     const [vendorData, setVendorData] = useState({});
 
@@ -30,11 +28,8 @@ const AddClient = (props) => {
         if (!!props.route.params && !!props.route.params.vendorData) {
             setVendorData(props.route.params.vendorData)
             setName(props.route.params.vendorData.name)
-            setAltPhone(props.route.params.vendorData.alt_phone)
             setEmail(props.route.params.vendorData.email)
             setPhone(props.route.params.vendorData.phone)
-            setAddress(props.route.params.vendorData.address)
-            setNote(props.route.params.vendorData.note)
             setEdit(true)
         }
     }, [])
@@ -46,34 +41,28 @@ const AddClient = (props) => {
     const onAddVendor = async () => {
         if (!name) {
             Constants.showAlert.alertWithType('error', 'Error', 'Enter valid name.');
+        } else if (!email) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid email.');
+        } else if (!password) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid password.');
+        } else if (!phone) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid phone.');
         }
-
         Constants.showLoader.showLoader();
         var formBody = new FormData();
         formBody.append('name', name)
-        if (!!phone) {
-            formBody.append('phone', phone)
-        }
-        if (!!email) {
-            formBody.append('email', email)
-        }
-        if (!!altphone) {
-            formBody.append('alt_phone', altphone)
-        }
-        if (!!address) {
-            formBody.append('address', address)
-        }
-        if (!!note) {
-            formBody.append('note', note)
-        }
+        formBody.append('email', email)
+        formBody.append('password', password)
+        formBody.append('phone', phone)
         var headers = {
             "Content-Type": "multipart/form-data",
             "Authorization": props.profile.token_type + ' ' + props.profile.access_token
         }
-        let data = await ApiServices.PostApiCall(ApiEndpoint.CLIENT_LIST, formBody, headers);
+        let data = await ApiServices.PostApiCall(ApiEndpoint.USERS_LIST, formBody, headers);
+        console.log(ApiEndpoint.USERS_LIST, 'ApiEndpoint.VENDOR_LIST');
         if (!!data && !!data.status) {
-            Constants.showAlert.alertWithType('success', 'Success', 'Client added Successfully!');
-            EventEmitter.emit("onAddClient");
+            Constants.showAlert.alertWithType('success', 'Success', 'User added Successfully!');
+            EventEmitter.emit("onAddUser");
             props.navigation.pop();
         } else {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
@@ -84,34 +73,30 @@ const AddClient = (props) => {
     const onEditVendor = async () => {
         if (!name) {
             Constants.showAlert.alertWithType('error', 'Error', 'Enter valid name.');
+        } else if (!email) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid email.');
+        } else if (!phone) {
+            Constants.showAlert.alertWithType('error', 'Error', 'Enter valid phone.');
         }
         Constants.showLoader.showLoader();
         var formBody = new FormData();
         formBody.append('name', name)
+        formBody.append('email', email)
+        if (!!password) {
+            formBody.append('password', password)
+        }
         if (!!phone) {
             formBody.append('phone', phone)
-        }
-        if (!!email) {
-            formBody.append('email', email)
-        }
-        if (!!altphone) {
-            formBody.append('alt_phone', altphone)
-        }
-        if (!!address) {
-            formBody.append('address', address)
-        }
-        if (!!note) {
-            formBody.append('note', note)
         }
         var headers = {
             "Content-Type": "multipart/form-data",
             "Authorization": props.profile.token_type + ' ' + props.profile.access_token
         }
-        let data = await ApiServices.PostApiCall(ApiEndpoint.EDIT_CLIENT + '/' + vendorData.id, formBody, headers);
-        console.log(data, 'ApiEndpoint.EDIT_CLIENT', ApiEndpoint.EDIT_CLIENT + '/' + vendorData.id);
+        let data = await ApiServices.PostApiCall(ApiEndpoint.USERS_LIST + '/' + vendorData.id, formBody, headers);
+        console.log(ApiEndpoint.VENDOR_LIST, 'ApiEndpoint.VENDOR_LIST');
         if (!!data && !!data.status) {
-            Constants.showAlert.alertWithType('success', 'Success', 'Client edited Successfully!');
-            EventEmitter.emit("onAddClient");
+            Constants.showAlert.alertWithType('success', 'Success', 'User edited Successfully!');
+            EventEmitter.emit("onAddUser");
             props.navigation.pop();
         } else {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
@@ -130,14 +115,12 @@ const AddClient = (props) => {
                             <Icon name={'arrow-left'} size={25} color={'black'} />
                         </TouchableOpacity>
                         <View style={styles.titleContainer}>
-                            <Text style={styles.title}>{isEdit ? 'Edit Client' : 'Add Client'}</Text>
+                            <Text style={styles.title}>{isEdit ? 'Edit User' : 'Add User'}</Text>
                         </View>
                         <View></View>
                     </View>
                 </View>
-                <ScrollView
-                    bounces={false}
-                    contentContainerStyle={styles.container1}>
+                <View style={styles.container1}>
                     <OutlineInput
                         containerStyle={styles.inputFirstView}
                         onChangeText={(text) => {
@@ -145,22 +128,6 @@ const AddClient = (props) => {
                         }}
                         value={name}
                         placeholder={'Enter Name'} />
-                    <OutlineInput
-                        containerStyle={styles.inputFirstView}
-                        onChangeText={(text) => {
-                            setPhone(text)
-                        }}
-                        value={phone}
-                        keyboardType={'phone-pad'}
-                        placeholder={'Enter Phone'} />
-                    <OutlineInput
-                        containerStyle={styles.inputFirstView}
-                        onChangeText={(text) => {
-                            setAltPhone(text)
-                        }}
-                        value={altphone}
-                        keyboardType={'phone-pad'}
-                        placeholder={'Enter Alter Phone'} />
                     <OutlineInput
                         containerStyle={styles.inputFirstView}
                         onChangeText={(text) => {
@@ -172,23 +139,21 @@ const AddClient = (props) => {
                     <OutlineInput
                         containerStyle={styles.inputFirstView}
                         onChangeText={(text) => {
-                            setAddress(text)
+                            setPassword(text)
                         }}
-                        textInput={styles.textInput}
-                        value={address}
-                        multiline={true}
-                        numberOfLines={4}
-                        placeholder={'Enter Address'} />
+                        password={true}
+                        drawableRight={require('../assets/images/eye.png')}
+                        value={password}
+                        placeholder={'Enter password'} />
                     <OutlineInput
                         containerStyle={styles.inputFirstView}
                         onChangeText={(text) => {
-                            setNote(text)
+                            setPhone(text)
                         }}
-                        textInput={styles.textInput}
-                        value={note}
-                        multiline={true}
-                        numberOfLines={4}
-                        placeholder={'Enter Note'} />
+                        value={phone}
+                        keyboardType={'phone-pad'}
+                        placeholder={'Enter Phone'} />
+
                     <CustButton
                         containerStyle={styles.btnStyle}
                         onPress={() => {
@@ -198,8 +163,8 @@ const AddClient = (props) => {
                                 onAddVendor()
                             }
                         }}
-                        text={isEdit ? 'Edit Client' : 'Add Client'} />
-                </ScrollView>
+                        text={isEdit ? 'Edit User' : 'Add User'} />
+                </View>
             </View>
         </View>
     );
@@ -207,12 +172,8 @@ const AddClient = (props) => {
 }
 
 const styles = StyleSheet.create({
-    textInput: {
-        minHeight: 80,
-        paddingTop: 10,
-    },
     inputFirstView: {
-        paddingHorizontal: 10,
+        paddingHorizontal: 10
     },
     btnStyle: {
         marginTop: 30,
@@ -270,4 +231,4 @@ const mapDispatchToProps = (dispatch) => ({
     save_user_data: (data) =>
         dispatch({ type: Types.LOGIN, payload: data }),
 });
-export default connect(mapStateToProps, mapDispatchToProps)(AddClient);
+export default connect(mapStateToProps, mapDispatchToProps)(AddUser);

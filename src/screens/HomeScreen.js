@@ -21,6 +21,7 @@ const HomeScreen = (props) => {
     const [endDate, setEndDate] = useState('')
     const [type, setType] = useState('')
     const [vendorList, setVendorList] = useState([])
+    const [userList, setUserList] = useState([])
     const [reportType, setReportType] = useState('Vendor Report')
     const countries = ["Vendor Report", "Lead Report", "Inwards Payment Report", "Vendor Payment Report"]
     const leadStatus = ["In Progress", "Confirmed", "Payment Pending", "Cancelled", "Not eligible"]
@@ -29,7 +30,22 @@ const HomeScreen = (props) => {
 
     useEffect(() => {
         getVendors()
+        getUsers()
     }, [])
+
+    const getUsers = async () => {
+        Constants.showLoader.showLoader();
+        var headers = {
+            "Authorization": props.profile.token_type + ' ' + props.profile.access_token
+        }
+        let data = await ApiServices.GetApiCall(ApiEndpoint.USERS_LIST, headers);
+        if (!!data && !!data.status) {
+            setUserList(data.data)
+        } else {
+            Constants.showAlert.alertWithType('error', 'Error', data.message);
+        }
+        Constants.showLoader.hideLoader();
+    }
 
     const getVendors = async () => {
         Constants.showLoader.showLoader();
@@ -163,16 +179,16 @@ const HomeScreen = (props) => {
                     />}
 
                     {reportType == 'Lead Report' && <SelectDropdown
-                        data={countries}
+                        data={userList}
                         onSelect={(selectedItem, index) => {
                             console.log(selectedItem, index);
                         }}
                         defaultButtonText={'Select Assigned Team'}
                         buttonTextAfterSelection={(selectedItem, index) => {
-                            return selectedItem;
+                            return selectedItem.name;
                         }}
                         rowTextForSelection={(item, index) => {
-                            return item;
+                            return item.name;
                         }}
                         buttonStyle={styles.dropdown1BtnStyle}
                         buttonTextStyle={styles.dropdown1BtnTxtStyle}

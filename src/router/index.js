@@ -15,6 +15,10 @@ import AddVendor from '../screens/AddVendor';
 import ClientScreen from '../screens/ClientScreen';
 import AddClient from '../screens/AddClient';
 import DocScreen from '../screens/DocScreen';
+import AddDocs from '../screens/AddDocs';
+import UsersScreen from '../screens/UsersScreen';
+import AddUser from '../screens/AddUser';
+import LeadsScreen from '../screens/LeadsScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -62,6 +66,10 @@ const MainNavigator = () => {
                 <Stack.Screen name="Clients" component={ClientScreen} />
                 <Stack.Screen name="AddClient" component={AddClient} />
                 <Stack.Screen name="Docs" component={DocScreen} />
+                <Stack.Screen name="AddDocs" component={AddDocs} />
+                <Stack.Screen name="Users" component={UsersScreen} />
+                <Stack.Screen name="AddUser" component={AddUser} />
+                <Stack.Screen name="Leads" component={LeadsScreen} />
                 <Stack.Screen
                     options={{
                         headerShown: true,

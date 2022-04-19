@@ -12,23 +12,23 @@ import ApiServices from '../config/ApiServices';
 import CustButton from '../components/CustButton';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import EventEmitter from "react-native-eventemitter";
-import RenderHtml from 'react-native-render-html';
+import moment from 'moment';
 
-const DocScreen = (props) => {
+const LeadsScreen = (props) => {
 
     const [vendorList, setVendorList] = useState([])
 
 
     useEffect(() => {
         getVendorList()
-        EventEmitter.on("onAddDoc", onAddDoc);
+        EventEmitter.on("onAddUser", onAddUser);
 
         return () => {
-            EventEmitter.removeListener("onAddDoc", onAddDoc);
+            EventEmitter.removeListener("onAddUser", onAddUser);
         }
     }, [])
 
-    const onAddDoc = () => {
+    const onAddUser = () => {
         getVendorList()
     }
 
@@ -37,7 +37,7 @@ const DocScreen = (props) => {
         var headers = {
             "Authorization": props.profile.token_type + ' ' + props.profile.access_token
         }
-        let data = await ApiServices.GetApiCall(ApiEndpoint.DOC_LIST, headers);
+        let data = await ApiServices.GetApiCall(ApiEndpoint.LEAD_LIST, headers);
         if (!!data && !!data.status) {
             var newArray = [];
             for (let index = 0; index < data.data.length; index++) {
@@ -57,7 +57,7 @@ const DocScreen = (props) => {
     }
 
     const onAddVendor = () => {
-        props.navigation.navigate('AddDocs');
+        props.navigation.navigate('AddUser');
     }
 
     const onVendorClick = () => {
@@ -69,21 +69,15 @@ const DocScreen = (props) => {
                 activeOpacity={1}
                 onPress={() => onVendorClick()}
                 style={styles.cardView}>
-                <Text style={styles.textCard}>Title: {item.title}</Text>
-                <View style={{ flexDirection: 'row', flex: 1 }}>
-                    <Text
-                        numberOfLines={2}
-                        style={styles.textCard}>Description: </Text>
-                    <RenderHtml
-                        source={{ html: !!item.description ? item.description : '-' }} />
-                </View>
-                <View style={{ flexDirection: 'row', flex: 1 }}>
-                    <Text
-                        numberOfLines={2}
-                        style={styles.textCard}>Notes: </Text>
-                    <RenderHtml
-                        source={{ html: !!item.notes ? item.notes : '-' }} />
-                </View>
+                <Text style={styles.textCard}>Lead Id: {'TMS' + String(item.id).padStart(3, '0')}</Text>
+                {<Text style={styles.textCard}>Date: {moment(item.created_at, 'DD-MM-YYYY HH:mm:ss').format('DD/MM/YYYY HH:mm')}</Text>}
+                {<Text style={styles.textCard}>Client: {!!item.client_name ? item.client_name : '-'}</Text>}
+                {<Text style={styles.textCard}>Assigned User: {!!item.assignedUser ? item.assignedUser : '-'}</Text>}
+                {<Text style={styles.textCard}>Departure: {!!item.departure_city ? item.departure_city : '-'}</Text>}
+                {<Text style={styles.textCard}>Arrival: {!!item.arrival_city ? item.arrival_city : '-'}</Text>}
+                {<Text style={styles.textCard}>Dep. Date: {!!item.estimated_dep ? item.estimated_dep : '-'}</Text>}
+                {<Text style={styles.textCard}>Budget: {!!item.budget ? item.budget : '-'}</Text>}
+                {<Text style={styles.textCard}>Status: {!!item.status ? item.status : '-'}</Text>}
             </TouchableOpacity>
         )
     }
@@ -99,13 +93,13 @@ const DocScreen = (props) => {
         var headers = {
             "Authorization": props.profile.token_type + ' ' + props.profile.access_token
         }
-        let data = await ApiServices.PostApiCall(ApiEndpoint.DELETE_DOC + '/' + rowMap[rowKey].props.item.id, null, headers);
+        let data = await ApiServices.PostApiCall(ApiEndpoint.USERS_LIST + '/' + rowMap[rowKey].props.item.id + '/delete', null, headers);
         if (!!data && !!data.status) {
             const newData = [...vendorList];
             const prevIndex = vendorList.findIndex(item => item.key === rowKey);
             newData.splice(prevIndex, 1);
             setVendorList(newData);
-            Constants.showAlert.alertWithType('success', 'Success', 'Doc deleted Successfully!');
+            Constants.showAlert.alertWithType('success', 'Success', 'User deleted Successfully!');
         } else {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
         }
@@ -137,7 +131,7 @@ const DocScreen = (props) => {
 
     const updateItem = (rowMap, rowKey) => {
         closeRow(rowMap, rowKey);
-        props.navigation.navigate('AddDocs', {
+        props.navigation.navigate('AddUser', {
             vendorData: rowMap[rowKey].props.item
         })
     }
@@ -146,17 +140,17 @@ const DocScreen = (props) => {
         <View
             style={styles.rowBack}>
             <TouchableOpacity
-                style={[styles.backRightBtn, styles.backRightBtnLeft]}
+                style={[styles.backRightBtn, styles.backRightBtnLeft, { right: props.profile.id !== data.item.id ? 75 : 0, borderTopRightRadius: props.profile.id !== data.item.id ? 0 : 10, borderBottomRightRadius: props.profile.id !== data.item.id ? 0 : 10, width: props.profile.id !== data.item.id ? 75 : 150 }]}
                 onPress={() => updateItem(rowMap, data.item.key)}
             >
                 <Text style={styles.backTextWhite}>Update</Text>
             </TouchableOpacity>
-            <TouchableOpacity
+            {props.profile.id !== data.item.id && <TouchableOpacity
                 style={[styles.backRightBtn, styles.backRightBtnRight, { borderTopRightRadius: 10, borderBottomRightRadius: 10 }]}
                 onPress={() => deleteRow(rowMap, data.item.key)}
             >
                 <Text style={styles.backTextWhite}>Delete</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>}
         </View>
     );
 
@@ -172,7 +166,7 @@ const DocScreen = (props) => {
                         </TouchableOpacity>
 
                         <View style={styles.titleContainer}>
-                            <Text style={styles.title}>Docs</Text>
+                            <Text style={styles.title}>Leads</Text>
                         </View>
 
                         <TouchableOpacity
@@ -191,8 +185,8 @@ const DocScreen = (props) => {
                         renderHiddenItem={renderHiddenItem}
                         rightOpenValue={-150}
                         previewRowKey={'0'}
-                        showsVerticalScrollIndicator={false}
                         previewOpenValue={-40}
+                        showsVerticalScrollIndicator={false}
                         previewOpenDelay={3000}
                         onRowDidOpen={onRowDidOpen} />
                 </View>
@@ -243,6 +237,7 @@ const styles = StyleSheet.create({
     textCard: {
         fontSize: 12,
         marginBottom: 5,
+        flex: 1
     },
     cardView: {
         marginVertical: 7,
@@ -316,4 +311,4 @@ const mapDispatchToProps = (dispatch) => ({
     save_user_data: (data) =>
         dispatch({ type: Types.LOGIN, payload: data }),
 });
-export default connect(mapStateToProps, mapDispatchToProps)(DocScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(LeadsScreen);
