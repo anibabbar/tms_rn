@@ -57,7 +57,7 @@ const LeadsScreen = (props) => {
     }
 
     const onAddVendor = () => {
-        props.navigation.navigate('AddUser');
+        props.navigation.navigate('AddLead');
     }
 
     const onVendorClick = () => {
@@ -131,7 +131,7 @@ const LeadsScreen = (props) => {
 
     const updateItem = (rowMap, rowKey) => {
         closeRow(rowMap, rowKey);
-        props.navigation.navigate('AddUser', {
+        props.navigation.navigate('AddLead', {
             vendorData: rowMap[rowKey].props.item
         })
     }
