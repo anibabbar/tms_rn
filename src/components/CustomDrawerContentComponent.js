@@ -40,12 +40,6 @@ const noti_Data1 = [
         labelName: 'Company',
         screenName: 'Company',
         iconName: 'office-building',
-    },
-    {
-        labelName: 'About Us',
-        screenName: 'AboutUs',
-        iconName: null,
-        image: require('../assets/images/logo.png')
     }
 ];
 

@@ -102,8 +102,8 @@ const ClientScreen = (props) => {
 
     const deleteRow = (rowMap, rowKey) => {
         Alert.alert(
-            "Delete Vendor",
-            "Are you sure you want to delete vendor?",
+            "Delete Client",
+            "Are you sure you want to delete client?",
             [
                 {
                     text: "No",
