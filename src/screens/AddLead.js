@@ -21,6 +21,8 @@ import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
 import { actions, getContentCSS, RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
 import ClientHistory from '../components/ClientHistory';
+import PayementTree from '../components/PayementTree';
+import VendorPaymentTree from '../components/VendorPaymentTree';
 
 const AddLead = (props) => {
 
@@ -724,8 +726,15 @@ const AddLead = (props) => {
                         }}
                         text={isEdit ? 'Edit Lead' : 'Add Lead'} />
 
-                    <ClientHistory props={props} />
+                    {isEdit && <ClientHistory props={props} />}
 
+                    <View height={80} />
+
+                    {isEdit && <PayementTree props={props} />}
+
+                    <View height={10} />
+                    
+                    {isEdit && <VendorPaymentTree props={props} />}
                 </ScrollView>
             </View>
             <DatePicker

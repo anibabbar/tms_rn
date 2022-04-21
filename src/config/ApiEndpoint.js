@@ -18,5 +18,7 @@ export default {
     DOC_CAT_LIST: Constants.API_BASEURL + 'docCategory',
     DELETE_CAT_DOC: Constants.API_BASEURL + 'docCategory/delete',
     EDIT_DOC_CAT: Constants.API_BASEURL + 'docCategory/edit',
-    
+    PAYMENT_TREE: Constants.API_BASEURL + 'paymenttree',
+    VENDOR_PAYMENT_TREE: Constants.API_BASEURL +'vendor-paymenttree'
+
 }
