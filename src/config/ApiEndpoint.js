@@ -15,5 +15,8 @@ export default {
     LEAD_LIST: Constants.API_BASEURL + 'lead',
     LEAD_DELETE: Constants.API_BASEURL + 'lead/delete',
     EDIT_LEAD: Constants.API_BASEURL + 'lead/edit',
+    DOC_CAT_LIST: Constants.API_BASEURL + 'docCategory',
+    DELETE_CAT_DOC: Constants.API_BASEURL + 'docCategory/delete',
+    EDIT_DOC_CAT: Constants.API_BASEURL + 'docCategory/edit',
     
 }

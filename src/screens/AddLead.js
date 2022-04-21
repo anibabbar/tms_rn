@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet, Image, Dimensions, StatusBar, TouchableOpacity, Text, FlatList, ScrollView } from 'react-native';
 import Constants from '../config/Constants';
 import { connect } from 'react-redux';
@@ -19,6 +19,8 @@ import SelectDropdown from 'react-native-select-dropdown';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
+import { actions, getContentCSS, RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
+import ClientHistory from '../components/ClientHistory';
 
 const AddLead = (props) => {
 
@@ -63,6 +65,9 @@ const AddLead = (props) => {
     const [clientList, setUserList] = useState([])
     const leadStatus = ["New Lead", "In Progress", "Confirmed", "Payment Pending", "Cancelled", "Not eligible"]
 
+    const [hotelFormat, setHotelFormat] = useState('')
+    const hotelFormatRichEditor = useRef()
+
     useEffect(() => {
         if (!!props.route.params && !!props.route.params.vendorData) {
             setVendorData(props.route.params.vendorData)
@@ -95,6 +100,7 @@ const AddLead = (props) => {
             setNoOfRoom(!!props.route.params.vendorData.no_of_rooms ? props.route.params.vendorData.no_of_rooms.toString() : '')
             setMealPlan(!!props.route.params.vendorData.mealPlan ? props.route.params.vendorData.mealPlan.toString() : '')
 
+            setHotelFormat(props.route.params.vendorData.hotel_format)
         }
         getUsers();
         getVendors();
@@ -193,18 +199,13 @@ const AddLead = (props) => {
         if (!!purchaseInfo) {
             formBody.append('purchase_info', purchaseInfo)
         }
-        if (!!flight) {
-            formBody.append('flight', flight ? 1 : 0)
-        }
-        if (!!transfers) {
-            formBody.append('transfers', transfers ? 1 : 0)
-        }
-        if (!!singhseeing) {
-            formBody.append('sightseeing', singhseeing ? 1 : 0)
-        }
-        if (!!insurance) {
-            formBody.append('insurance', insurance ? 1 : 0)
-        }
+        formBody.append('flight', flight ? 1 : 0)
+
+        formBody.append('transfers', transfers ? 1 : 0)
+
+        formBody.append('sightseeing', singhseeing ? 1 : 0)
+
+        formBody.append('insurance', insurance ? 1 : 0)
         if (!!noOfNight) {
             formBody.append('no_of_nights', noOfNight)
         }
@@ -214,18 +215,19 @@ const AddLead = (props) => {
         if (!!mealPlan) {
             formBody.append('mealPlan', mealPlan)
         }
-        if (!!hotel) {
-            formBody.append('hotel', hotel ? 1 : 0)
+        formBody.append('hotel', hotel ? 1 : 0)
+
+        formBody.append('visa', visa ? 1 : 0)
+
+        formBody.append('passport', passport ? 1 : 0)
+
+        formBody.append('package', isPackage ? 1 : 0)
+
+        if (!!hotelFormat) {
+            console.log(hotelFormat, 'hotelFormat');
+            formBody.append('hotel_format', hotelFormat)
         }
-        if (!!visa) {
-            formBody.append('visa', visa ? 1 : 0)
-        }
-        if (!!passport) {
-            formBody.append('passport', passport ? 1 : 0)
-        }
-        if (!!isPackage) {
-            formBody.append('package', isPackage ? 1 : 0)
-        }
+
         var headers = {
             "Content-Type": "multipart/form-data",
             "Authorization": props.profile.token_type + ' ' + props.profile.access_token
@@ -283,18 +285,13 @@ const AddLead = (props) => {
         if (!!purchaseInfo) {
             formBody.append('purchase_info', purchaseInfo)
         }
-        if (!!flight) {
-            formBody.append('flight', flight ? 1 : 0)
-        }
-        if (!!transfers) {
-            formBody.append('transfers', transfers ? 1 : 0)
-        }
-        if (!!singhseeing) {
-            formBody.append('sightseeing', singhseeing ? 1 : 0)
-        }
-        if (!!insurance) {
-            formBody.append('insurance', insurance ? 1 : 0)
-        }
+        formBody.append('flight', flight ? 1 : 0)
+
+        formBody.append('transfers', transfers ? 1 : 0)
+
+        formBody.append('sightseeing', singhseeing ? 1 : 0)
+
+        formBody.append('insurance', insurance ? 1 : 0)
         if (!!noOfNight) {
             formBody.append('no_of_nights', noOfNight)
         }
@@ -304,17 +301,17 @@ const AddLead = (props) => {
         if (!!mealPlan) {
             formBody.append('mealPlan', mealPlan)
         }
-        if (!!hotel) {
-            formBody.append('hotel', hotel ? 1 : 0)
-        }
-        if (!!visa) {
-            formBody.append('visa', visa ? 1 : 0)
-        }
-        if (!!passport) {
-            formBody.append('passport', passport ? 1 : 0)
-        }
-        if (!!isPackage) {
-            formBody.append('package', isPackage ? 1 : 0)
+        formBody.append('hotel', hotel ? 1 : 0)
+
+        formBody.append('visa', visa ? 1 : 0)
+
+        formBody.append('passport', passport ? 1 : 0)
+
+        formBody.append('package', isPackage ? 1 : 0)
+
+        if (!!hotelFormat) {
+            console.log(hotelFormat, 'hotelFormat');
+            formBody.append('hotel_format', hotelFormat)
         }
         var headers = {
             "Content-Type": "multipart/form-data",
@@ -330,6 +327,12 @@ const AddLead = (props) => {
             Constants.showAlert.alertWithType('error', 'Error', data.message);
         }
         Constants.showLoader.hideLoader();
+    }
+
+    const onEditorInitialized = () => {
+        hotelFormatRichEditor.current?.registerToolbar(function (items) {
+            // console.log('Toolbar click, selected items (insert end callback):', items);
+        });
     }
 
     return (
@@ -682,6 +685,34 @@ const AddLead = (props) => {
                         multiline={true}
                         numberOfLines={4}
                         placeholder={'Enter Purchase Info'} />
+
+                    {hotel && <>
+                        <View style={[styles.inputFirstView, { marginTop: 20 }]}>
+                            <RichToolbar
+                                editor={hotelFormatRichEditor}
+                                actions={[
+                                    actions.setBold,
+                                    actions.setItalic,
+                                    actions.insertBulletsList,
+                                    actions.insertOrderedList,
+                                ]}
+                            />
+                        </View>
+
+                        <RichEditor
+                            style={{ minHeight: 100 }}
+                            containerStyle={[styles.inputFirstView, { borderWidth: 1, borderColor: 'gray', marginHorizontal: 10, borderRadius: 10, minHeight: 100 }]}
+                            ref={hotelFormatRichEditor}
+                            initialContentHTML={hotelFormat}
+                            placeholder={'Hotel Format'}
+                            editorInitializedCallback={() => onEditorInitialized()}
+                            onChange={(text) => {
+                                setHotelFormat(text);
+                                console.log(desc);
+                            }}
+                        />
+                    </>}
+
                     <CustButton
                         containerStyle={styles.btnStyle}
                         onPress={() => {
@@ -692,6 +723,9 @@ const AddLead = (props) => {
                             }
                         }}
                         text={isEdit ? 'Edit Lead' : 'Add Lead'} />
+
+                    <ClientHistory props={props} />
+
                 </ScrollView>
             </View>
             <DatePicker
@@ -825,7 +859,7 @@ const styles = StyleSheet.create({
     },
     container1: {
         paddingHorizontal: 15,
-        paddingBottom: 30,
+        paddingBottom: 200,
         backgroundColor: 'white'
     }
 });

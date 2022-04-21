@@ -22,6 +22,11 @@ const noti_Data1 = [
         iconName: 'account',
     },
     {
+        labelName: `Doc Categories`,
+        screenName: 'DocCat',
+        iconName: 'file-document',
+    },
+    {
         labelName: 'Docs',
         screenName: 'Docs',
         iconName: 'file-document',

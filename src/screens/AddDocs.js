@@ -15,6 +15,8 @@ import CustInput from '../components/CustInput';
 import OutlineInput from '../components/OutlineInput';
 import EventEmitter from "react-native-eventemitter";
 import { actions, getContentCSS, RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
+import SelectDropdown from 'react-native-select-dropdown';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const AddDocs = (props) => {
 
@@ -23,6 +25,8 @@ const AddDocs = (props) => {
     const [notes, setNotes] = useState('')
     const [isEdit, setEdit] = useState(false);
     const [vendorData, setVendorData] = useState({});
+    const [docCat, setDocCat] = useState([]);
+    const [catItem, setCatItem] = useState({});
     const descRichEditor = useRef()
     const notesRichEditor = useRef()
 
@@ -34,7 +38,22 @@ const AddDocs = (props) => {
             setNotes(props.route.params.vendorData.notes)
             setEdit(true)
         }
+        getDocCat()
     }, [])
+
+    const getDocCat = async () => {
+        Constants.showLoader.showLoader();
+        var headers = {
+            "Authorization": props.profile.token_type + ' ' + props.profile.access_token
+        }
+        let data = await ApiServices.GetApiCall(ApiEndpoint.DOC_CAT_LIST, headers);
+        if (!!data && !!data.status) {
+            setDocCat(data.data)
+        } else {
+            Constants.showAlert.alertWithType('error', 'Error', data.message);
+        }
+        Constants.showLoader.hideLoader();
+    }
 
     const onMenuPress = () => {
         props.navigation.pop()
@@ -122,6 +141,7 @@ const AddDocs = (props) => {
                 </View>
                 <ScrollView
                     bounces={false}
+                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.container1}>
                     <OutlineInput
                         containerStyle={styles.inputFirstView}
@@ -130,6 +150,30 @@ const AddDocs = (props) => {
                         }}
                         value={title}
                         placeholder={'Enter Title'} />
+                    <View style={{ marginHorizontal: 10 }}>
+                        <SelectDropdown
+                            data={docCat}
+                            onSelect={(selectedItem, index) => {
+                                setCatItem(selectedItem)
+                            }}
+                            defaultButtonText={'Select Doc Category'}
+                            buttonTextAfterSelection={(selectedItem, index) => {
+                                return selectedItem.type;
+                            }}
+                            rowTextForSelection={(item, index) => {
+                                return item.type;
+                            }}
+                            buttonStyle={styles.dropdown1BtnStyle}
+                            buttonTextStyle={styles.dropdown1BtnTxtStyle}
+                            renderDropdownIcon={isOpened => {
+                                return <MaterialCommunityIcons name={isOpened ? 'chevron-up' : 'chevron-down'} color={'#444'} size={22} />;
+                            }}
+                            dropdownIconPosition={'right'}
+                            dropdownStyle={styles.dropdown1DropdownStyle}
+                            rowStyle={styles.dropdown1RowStyle}
+                            rowTextStyle={styles.dropdown1RowTxtStyle}
+                        />
+                    </View>
                     <View style={[styles.inputFirstView, { marginTop: 20 }]}>
                         <RichToolbar
                             editor={descRichEditor}
@@ -197,6 +241,45 @@ const AddDocs = (props) => {
 }
 
 const styles = StyleSheet.create({
+    dropdown1BtnStyle1: {
+        width: '100%',
+        height: 50,
+        marginTop: 20,
+        alignSelf: 'center',
+        backgroundColor: '#FFF',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        justifyContent: 'space-between',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#444',
+    },
+    dropdown1BtnTxtStyle: {
+        color: '#444',
+        textAlign: 'left',
+        fontSize: 14
+    },
+    dropdown1DropdownStyle: {
+        backgroundColor: '#EFEFEF'
+    },
+    dropdown1RowStyle: {
+        backgroundColor: '#EFEFEF',
+        borderBottomColor: '#C5C5C5'
+    },
+    dropdown1RowTxtStyle: {
+        color: '#444',
+        textAlign: 'left'
+    },
+    dropdown1BtnStyle: {
+        height: 50,
+        width: '100%',
+        marginTop: 20,
+        backgroundColor: '#FFF',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#444',
+    },
     textInput: {
         minHeight: 80,
         paddingTop: 10,
@@ -246,8 +329,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'white'
     },
     container1: {
-        flex: 1,
         paddingHorizontal: 15,
+        paddingBottom: 100,
         backgroundColor: 'white'
     }
 });
